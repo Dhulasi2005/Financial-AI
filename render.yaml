@@ -4,7 +4,8 @@ services:
     env: python
     buildCommand: |
       python3.10 -m pip install -r requirements.txt
-    startCommand: ./start.sh
+      python3.10 -c "import sys; print('Python version:', sys.version)"
+    startCommand: ./simple_start.sh
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.12

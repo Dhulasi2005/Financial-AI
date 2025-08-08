@@ -596,11 +596,31 @@ def create_app():
     @app.route("/health")
     def health_check():
         """Health check endpoint for deployment platforms"""
-        return {
-            "status": "healthy",
-            "timestamp": datetime.utcnow().isoformat(),
-            "version": "1.0.0"
-        }
+        try:
+            # Test database connection
+            from models import db, NewsItem
+            news_count = NewsItem.query.count()
+            
+            # Test imports
+            from sentiment import analyze_text
+            sentiment_result = analyze_text("test")
+            
+            return {
+                "status": "healthy",
+                "timestamp": datetime.utcnow().isoformat(),
+                "version": "1.0.0",
+                "database": "connected",
+                "news_count": news_count,
+                "sentiment": "working",
+                "rss_available": RSS_AVAILABLE
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "timestamp": datetime.utcnow().isoformat(),
+                "version": "1.0.0",
+                "error": str(e)
+            }
 
     return app
 

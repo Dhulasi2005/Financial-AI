@@ -12,14 +12,26 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Ensure instance directory exists
+try:
+    os.makedirs('instance', exist_ok=True)
+    logger.info("Instance directory created/verified")
+except Exception as e:
+    logger.warning(f"Could not create instance directory: {e}")
+
 try:
     from app import app
     logger.info("Successfully imported Flask app")
 except ImportError as e:
     logger.error(f"Failed to import app: {e}")
+    # Try to provide more detailed error information
+    import traceback
+    logger.error(f"Traceback: {traceback.format_exc()}")
     sys.exit(1)
 except Exception as e:
     logger.error(f"Unexpected error importing app: {e}")
+    import traceback
+    logger.error(f"Traceback: {traceback.format_exc()}")
     sys.exit(1)
 
 # Ensure the app is properly configured for production
