@@ -7,7 +7,25 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from news_scraper import fetch_news_by_country, fetch_international_financial_news, fetch_global_financial_news, get_supported_countries
-from rss_scraper import fetch_news_by_country as rss_fetch_news_by_country, fetch_international_financial_news as rss_fetch_international_news, fetch_global_financial_news as rss_fetch_global_news, get_supported_countries as rss_get_supported_countries
+
+# Try to import RSS scraper with fallback
+try:
+    from rss_scraper import fetch_news_by_country as rss_fetch_news_by_country, fetch_international_financial_news as rss_fetch_international_news, fetch_global_financial_news as rss_fetch_global_news, get_supported_countries as rss_get_supported_countries
+    RSS_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: RSS scraper not available, using alternative: {e}")
+    try:
+        from rss_scraper_alt import fetch_news_by_country as rss_fetch_news_by_country, fetch_international_financial_news as rss_fetch_international_news, fetch_global_financial_news as rss_fetch_global_news, get_supported_countries as rss_get_supported_countries
+        RSS_AVAILABLE = True
+    except ImportError as e2:
+        print(f"Warning: Alternative RSS scraper also not available: {e2}")
+        # Create dummy functions
+        def rss_fetch_news_by_country(*args, **kwargs): return []
+        def rss_fetch_international_news(*args, **kwargs): return []
+        def rss_fetch_global_news(*args, **kwargs): return []
+        def rss_get_supported_countries(): return []
+        RSS_AVAILABLE = False
+
 from sentiment import analyze_text
 from strategy import generate_strategy
 from ai_advisor import FinancialAIAdvisor
