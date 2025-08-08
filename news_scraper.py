@@ -79,12 +79,23 @@ def fetch_news_by_country(country="us", category="business", page_size=50):
     
     try:
         resp = requests.get(NEWSAPI_ENDPOINT, params=params, timeout=20)
+        
+        # Handle rate limiting
+        if resp.status_code == 429:
+            print("⚠️  NewsAPI rate limit reached. Using fallback method...")
+            return fetch_news_by_country_search(country, page_size)
+        
         resp.raise_for_status()
         data = resp.json()
         
         # Check for API errors
         if data.get("status") == "error":
-            raise Exception(f"NewsAPI error: {data.get('message', 'Unknown error')}")
+            error_msg = data.get('message', 'Unknown error')
+            if "rateLimited" in error_msg or "429" in error_msg:
+                print("⚠️  NewsAPI rate limit reached. Using fallback method...")
+                return fetch_news_by_country_search(country, page_size)
+            else:
+                raise Exception(f"NewsAPI error: {error_msg}")
             
         articles = data.get("articles", [])
         

@@ -288,11 +288,19 @@ def create_app():
                 print(f"Successfully fetched {len(newsapi_articles)} articles via NewsAPI for {country}")
             except Exception as e:
                 print(f"NewsAPI error for {country}: {str(e)}")
-                if use_rss == "false":  # Only NewsAPI requested
-                    flash(f"NewsAPI error: {e}", "danger")
-                    return redirect(url_for("dashboard"))
-                else:  # Both requested, continue with RSS
-                    flash(f"NewsAPI failed: {e}, continuing with RSS feeds.", "warning")
+                # Try fallback news source
+                try:
+                    from fallback_news import get_fallback_news
+                    newsapi_articles = get_fallback_news(country=country, limit=page_size)
+                    print(f"Using fallback news: {len(newsapi_articles)} articles")
+                    flash(f"NewsAPI failed: {e}, using fallback news source.", "warning")
+                except Exception as fallback_error:
+                    print(f"Fallback news also failed: {fallback_error}")
+                    if use_rss == "false":  # Only NewsAPI requested
+                        flash(f"NewsAPI error: {e}", "danger")
+                        return redirect(url_for("dashboard"))
+                    else:  # Both requested, continue with RSS
+                        flash(f"NewsAPI failed: {e}, continuing with RSS feeds.", "warning")
         
         # Fetch from RSS if requested
         if use_rss in ["true", "both"]:
@@ -301,11 +309,19 @@ def create_app():
                 print(f"Successfully fetched {len(rss_articles)} articles via RSS for {country}")
             except Exception as e:
                 print(f"RSS error for {country}: {str(e)}")
-                if use_rss == "true":  # Only RSS requested
-                    flash(f"RSS feed error: {e}", "danger")
-                    return redirect(url_for("dashboard"))
-                else:  # Both requested, continue with NewsAPI
-                    flash(f"RSS failed: {e}, continuing with NewsAPI.", "warning")
+                # Try fallback news source
+                try:
+                    from fallback_news import get_fallback_news
+                    rss_articles = get_fallback_news(country=country, limit=page_size)
+                    print(f"Using fallback news for RSS: {len(rss_articles)} articles")
+                    flash(f"RSS failed: {e}, using fallback news source.", "warning")
+                except Exception as fallback_error:
+                    print(f"Fallback news also failed: {fallback_error}")
+                    if use_rss == "true":  # Only RSS requested
+                        flash(f"RSS feed error: {e}", "danger")
+                        return redirect(url_for("dashboard"))
+                    else:  # Both requested, continue with NewsAPI
+                        flash(f"RSS failed: {e}, continuing with NewsAPI.", "warning")
         
         # Combine articles and remove duplicates
         all_articles = _merge_and_deduplicate_articles(newsapi_articles, rss_articles)

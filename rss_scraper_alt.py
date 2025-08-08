@@ -11,7 +11,10 @@ def parse_rss_feed(url: str) -> List[Dict]:
     Parse RSS feed using xml.etree instead of feedparser
     """
     try:
-        response = requests.get(url, timeout=10)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, timeout=10, headers=headers)
         response.raise_for_status()
         
         # Parse XML
@@ -79,28 +82,33 @@ def fetch_news_by_country(country_code: str, limit: int = 20) -> List[Dict]:
     """
     Fetch RSS news for a specific country
     """
-    # Define RSS feeds for different countries
+    # Define RSS feeds for different countries - using more reliable sources
     rss_feeds = {
         'US': [
             'https://feeds.reuters.com/reuters/businessNews',
             'https://feeds.reuters.com/reuters/technologyNews',
-            'https://rss.cnn.com/rss/money_latest.rss'
+            'https://rss.cnn.com/rss/money_latest.rss',
+            'https://feeds.npr.org/1007/rss.xml'  # Business news
         ],
         'IN': [
             'https://feeds.financialexpress.com/latest-news',
-            'https://www.moneycontrol.com/rss/business.xml'
+            'https://www.moneycontrol.com/rss/business.xml',
+            'https://economictimes.indiatimes.com/rss.cms'
         ],
         'GB': [
             'https://feeds.bbci.co.uk/news/business/rss.xml',
-            'https://www.ft.com/rss/home'
+            'https://www.ft.com/rss/home',
+            'https://feeds.skynews.com/feeds/rss/business.xml'
         ],
         'CA': [
             'https://feeds.globalnews.ca/GlobalNewsBusiness.xml',
-            'https://www.cbc.ca/cmlink/rss-business'
+            'https://www.cbc.ca/cmlink/rss-business',
+            'https://feeds.financialpost.com/financialpost/business'
         ],
         'AU': [
             'https://feeds.abc.net.au/abcnews/business.xml',
-            'https://www.afr.com/rss/feed.xml'
+            'https://www.afr.com/rss/feed.xml',
+            'https://feeds.smh.com.au/rss/business.xml'
         ]
     }
     
@@ -111,8 +119,10 @@ def fetch_news_by_country(country_code: str, limit: int = 20) -> List[Dict]:
         try:
             articles = parse_rss_feed(feed_url)
             all_articles.extend(articles)
+            print(f"✅ Fetched {len(articles)} articles from {feed_url}")
         except Exception as e:
             logger.error(f"Error fetching RSS feed {feed_url}: {e}")
+            print(f"❌ Failed to fetch from {feed_url}: {e}")
     
     # Sort by publication date (newest first)
     all_articles.sort(key=lambda x: x.get('publishedAt', datetime.min), reverse=True)
@@ -128,7 +138,8 @@ def fetch_international_financial_news(limit: int = 20) -> List[Dict]:
         'https://feeds.bbci.co.uk/news/business/rss.xml',
         'https://www.ft.com/rss/home',
         'https://feeds.bloomberg.com/markets/news.rss',
-        'https://feeds.reuters.com/Reuters/businessNews'
+        'https://feeds.reuters.com/Reuters/businessNews',
+        'https://feeds.npr.org/1007/rss.xml'
     ]
     
     all_articles = []
@@ -137,8 +148,10 @@ def fetch_international_financial_news(limit: int = 20) -> List[Dict]:
         try:
             articles = parse_rss_feed(feed_url)
             all_articles.extend(articles)
+            print(f"✅ Fetched {len(articles)} articles from {feed_url}")
         except Exception as e:
             logger.error(f"Error fetching international RSS feed {feed_url}: {e}")
+            print(f"❌ Failed to fetch from {feed_url}: {e}")
     
     # Sort by publication date (newest first)
     all_articles.sort(key=lambda x: x.get('publishedAt', datetime.min), reverse=True)
@@ -156,7 +169,8 @@ def fetch_global_financial_news(limit: int = 20) -> List[Dict]:
         'https://feeds.bloomberg.com/markets/news.rss',
         'https://feeds.reuters.com/Reuters/businessNews',
         'https://feeds.financialexpress.com/latest-news',
-        'https://rss.cnn.com/rss/money_latest.rss'
+        'https://rss.cnn.com/rss/money_latest.rss',
+        'https://feeds.npr.org/1007/rss.xml'
     ]
     
     all_articles = []
@@ -165,8 +179,10 @@ def fetch_global_financial_news(limit: int = 20) -> List[Dict]:
         try:
             articles = parse_rss_feed(feed_url)
             all_articles.extend(articles)
+            print(f"✅ Fetched {len(articles)} articles from {feed_url}")
         except Exception as e:
             logger.error(f"Error fetching global RSS feed {feed_url}: {e}")
+            print(f"❌ Failed to fetch from {feed_url}: {e}")
     
     # Sort by publication date (newest first)
     all_articles.sort(key=lambda x: x.get('publishedAt', datetime.min), reverse=True)
