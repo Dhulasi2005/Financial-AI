@@ -12,3 +12,5 @@ services:
         value: production
       - key: PYTHONPATH
         value: /opt/render/project/src
+      - key: DATABASE_URL
+        value: sqlite:///instance/app.db

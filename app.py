@@ -12,19 +12,29 @@ from news_scraper import fetch_news_by_country, fetch_international_financial_ne
 try:
     from rss_scraper import fetch_news_by_country as rss_fetch_news_by_country, fetch_international_financial_news as rss_fetch_international_news, fetch_global_financial_news as rss_fetch_global_news, get_supported_countries as rss_get_supported_countries
     RSS_AVAILABLE = True
+    print("✓ Original RSS scraper loaded successfully")
 except ImportError as e:
-    print(f"Warning: RSS scraper not available, using alternative: {e}")
+    print(f"⚠️  Original RSS scraper not available: {e}")
     try:
         from rss_scraper_alt import fetch_news_by_country as rss_fetch_news_by_country, fetch_international_financial_news as rss_fetch_international_news, fetch_global_financial_news as rss_fetch_global_news, get_supported_countries as rss_get_supported_countries
         RSS_AVAILABLE = True
+        print("✓ Alternative RSS scraper loaded successfully")
     except ImportError as e2:
-        print(f"Warning: Alternative RSS scraper also not available: {e2}")
-        # Create dummy functions
-        def rss_fetch_news_by_country(*args, **kwargs): return []
-        def rss_fetch_international_news(*args, **kwargs): return []
-        def rss_fetch_global_news(*args, **kwargs): return []
-        def rss_get_supported_countries(): return []
+        print(f"⚠️  Alternative RSS scraper also not available: {e2}")
+        # Create dummy functions that return empty lists
+        def rss_fetch_news_by_country(*args, **kwargs): 
+            print("⚠️  RSS scraper not available, returning empty list")
+            return []
+        def rss_fetch_international_news(*args, **kwargs): 
+            print("⚠️  RSS scraper not available, returning empty list")
+            return []
+        def rss_fetch_global_news(*args, **kwargs): 
+            print("⚠️  RSS scraper not available, returning empty list")
+            return []
+        def rss_get_supported_countries(): 
+            return []
         RSS_AVAILABLE = False
+        print("⚠️  Using dummy RSS functions")
 
 from sentiment import analyze_text
 from strategy import generate_strategy
@@ -104,8 +114,15 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    # Initialize database with error handling
     with app.app_context():
-        db.create_all()
+        try:
+            print("🗄️  Initializing database...")
+            db.create_all()
+            print("✅ Database initialized successfully")
+        except Exception as e:
+            print(f"⚠️  Database initialization error: {e}")
+            print("⚠️  Continuing without database initialization")
 
     @app.route("/")
     def home():
