@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="ai-advisor-header">
+  <h1>
+    <i class="fas fa-robot"></i> AI Financial Advisor
+  </h1>
+  <p class="advisor-subtitle">AI-powered investment suggestions and market analysis</p>
+</div>
+
+<div class="advisor-grid">
+  <!-- Market Sentiment Analysis -->
+  <div class="advisor-panel">
+    <h3>
+      <i class="fas fa-chart-line"></i> Market Sentiment
+    </h3>
+    <div class="sentiment-analysis">
+      <div class="sentiment-card {{ market_sentiment.sentiment }}">
+        <div class="sentiment-icon">
+          {% if market_sentiment.sentiment == "bullish" %}
+            <i class="fas fa-arrow-up"></i>
+          {% elif market_sentiment.sentiment == "bearish" %}
+            <i class="fas fa-arrow-down"></i>
+          {% else %}
+            <i class="fas fa-minus"></i>
+          {% endif %}
+        </div>
+        <div class="sentiment-content">
+          <h4>{{ market_sentiment.sentiment.title() }}</h4>
+          <p>Confidence: {{ "%.1f"|format(market_sentiment.confidence * 100) }}%</p>
+          <p>Trend: {{ market_sentiment.trend.title() }}</p>
+        </div>
+      </div>
+      
+      <div class="sentiment-breakdown">
+        <div class="sentiment-bar">
+          <div class="bar-label">Positive</div>
+          <div class="bar-container">
+            <div class="bar-fill positive" style="width: {{ market_sentiment.positive_score * 100 }}%"></div>
+          </div>
+          <div class="bar-value">{{ "%.1f"|format(market_sentiment.positive_score * 100) }}%</div>
+        </div>
+        
+        <div class="sentiment-bar">
+          <div class="bar-label">Neutral</div>
+          <div class="bar-container">
+            <div class="bar-fill neutral" style="width: {{ market_sentiment.neutral_score * 100 }}%"></div>
+          </div>
+          <div class="bar-value">{{ "%.1f"|format(market_sentiment.neutral_score * 100) }}%</div>
+        </div>
+        
+        <div class="sentiment-bar">
+          <div class="bar-label">Negative</div>
+          <div class="bar-container">
+            <div class="bar-fill negative" style="width: {{ market_sentiment.negative_score * 100 }}%"></div>
+          </div>
+          <div class="bar-value">{{ "%.1f"|format(market_sentiment.negative_score * 100) }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Profile Selection -->
+  <div class="advisor-panel">
+    <h3>
+      <i class="fas fa-user-shield"></i> Risk Profile
+    </h3>
+    <div class="risk-profile-selector">
+      <form method="get" class="risk-form">
+        <div class="risk-options">
+          {% for profile in risk_profiles %}
+            <label class="risk-option {% if profile == current_risk %}active{% endif %}">
+              <input type="radio" name="risk_profile" value="{{ profile }}" {% if profile == current_risk %}checked{% endif %}>
+              <div class="risk-content">
+                <div class="risk-icon">
+                  {% if profile == "Conservative" %}
+                    <i class="fas fa-shield-alt"></i>
+                  {% elif profile == "Moderate" %}
+                    <i class="fas fa-balance-scale"></i>
+                  {% else %}
+                    <i class="fas fa-rocket"></i>
+                  {% endif %}
+                </div>
+                <div class="risk-text">
+                  <h4>{{ profile }}</h4>
+                  <p>
+                    {% if profile == "Conservative" %}
+                      Lower risk, stable returns
+                    {% elif profile == "Moderate" %}
+                      Balanced risk and growth
+                    {% else %}
+                      Higher risk, growth potential
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </label>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn">
+          <i class="fas fa-sync-alt"></i> Update Analysis
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Recommendations -->
+<div class="advisor-panel full-width">
+  <h3>
+    <i class="fas fa-chart-line"></i> Stock Recommendations
+  </h3>
+  
+  <div class="stock-recommendations">
+    <div class="recommendation-summary">
+      <h4>{{ stock_recommendations.analysis.recommendation_summary }}</h4>
+      <p>{{ stock_recommendations.analysis.diversification_note }}</p>
+    </div>
+    
+    <div class="stock-grid">
+      {% for stock in stock_recommendations.top_picks %}
+        <div class="stock-card">
+          <div class="stock-header">
+            <div class="stock-symbol">{{ stock.symbol }}</div>
+            <div class="stock-name">{{ stock.name }}</div>
+            <div class="stock-sector">{{ stock.sector }}</div>
+          </div>
+          
+          <div class="stock-content">
+            <p class="stock-description">{{ stock.description }}</p>
+            <p class="stock-reasoning">{{ stock.reasoning }}</p>
+            
+            <div class="stock-meta">
+              <span class="risk-badge {{ stock.risk_level.lower() }}">{{ stock.risk_level }}</span>
+              <span class="priority-badge {{ stock.priority }}">{{ stock.priority.title() }}</span>
+            </div>
+          </div>
+          
+          <div class="stock-charts">
+            <h5>View Charts & Analysis</h5>
+            <div class="chart-links">
+              <a href="{{ stock.chart_url }}" target="_blank" class="chart-link">
+                <i class="fas fa-chart-line"></i> TradingView
+              </a>
+              <a href="{{ stock.analysis_url }}" target="_blank" class="chart-link">
+                <i class="fas fa-chart-bar"></i> Yahoo Finance
+              </a>
+              <a href="{{ stock_recommendations.chart_data[stock.symbol].marketwatch }}" target="_blank" class="chart-link">
+                <i class="fas fa-chart-area"></i> MarketWatch
+              </a>
+              <a href="{{ stock_recommendations.chart_data[stock.symbol].google_finance }}" target="_blank" class="chart-link">
+                <i class="fab fa-google"></i> Google Finance
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    <!-- Sector Breakdown -->
+    <div class="sector-breakdown">
+      <h4>Sector Recommendations</h4>
+      <div class="sector-grid">
+        {% for sector, data in stock_recommendations.sector_recommendations.items() %}
+          <div class="sector-card">
+            <h5>{{ sector }}</h5>
+            <p class="sector-sentiment {{ data.sentiment }}">{{ data.reasoning }}</p>
+            <div class="sector-stocks">
+              {% for stock in data.stocks %}
+                <span class="stock-tag">{{ stock.symbol }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Risk-Adjusted Picks -->
+    <div class="risk-adjusted-picks">
+      <h4>Risk-Adjusted Recommendations</h4>
+      <div class="risk-picks-grid">
+        <div class="risk-category">
+          <h5><i class="fas fa-shield-alt"></i> Conservative</h5>
+          <div class="stock-list">
+            {% for stock in stock_recommendations.risk_adjusted_picks.conservative %}
+              <div class="mini-stock-card">
+                <span class="stock-symbol">{{ stock.symbol }}</span>
+                <span class="stock-name">{{ stock.name }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div class="risk-category">
+          <h5><i class="fas fa-balance-scale"></i> Moderate</h5>
+          <div class="stock-list">
+            {% for stock in stock_recommendations.risk_adjusted_picks.moderate %}
+              <div class="mini-stock-card">
+                <span class="stock-symbol">{{ stock.symbol }}</span>
+                <span class="stock-name">{{ stock.name }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div class="risk-category">
+          <h5><i class="fas fa-rocket"></i> Aggressive</h5>
+          <div class="stock-list">
+            {% for stock in stock_recommendations.risk_adjusted_picks.aggressive %}
+              <div class="mini-stock-card">
+                <span class="stock-symbol">{{ stock.symbol }}</span>
+                <span class="stock-name">{{ stock.name }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Investment Suggestions -->
+<div class="advisor-panel full-width">
+  <h3>
+    <i class="fas fa-lightbulb"></i> Investment Suggestions
+  </h3>
+  
+  <div class="suggestion-overview">
+    <div class="overview-card">
+      <h4>Overall Recommendation</h4>
+      <p>{{ suggestions.overall_recommendation }}</p>
+    </div>
+  </div>
+  
+  <div class="suggestions-grid">
+    <!-- Suggested Actions -->
+    <div class="suggestion-section">
+      <h4><i class="fas fa-tasks"></i> Suggested Actions</h4>
+      <ul class="suggestion-list">
+        {% for action in suggestions.suggested_actions %}
+          <li><i class="fas fa-check"></i> {{ action }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    <!-- Sectors to Watch -->
+    <div class="suggestion-section">
+      <h4><i class="fas fa-eye"></i> Sectors to Watch</h4>
+      <div class="sectors-grid">
+        {% for sector in suggestions.sectors_to_watch %}
+          <span class="sector-tag">{{ sector }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Opportunities -->
+    <div class="suggestion-section">
+      <h4><i class="fas fa-star"></i> Opportunities</h4>
+      <ul class="suggestion-list">
+        {% for opportunity in suggestions.opportunities %}
+          <li><i class="fas fa-lightbulb"></i> {{ opportunity }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    <!-- Risk Warnings -->
+    <div class="suggestion-section warning">
+      <h4><i class="fas fa-exclamation-triangle"></i> Risk Warnings</h4>
+      <ul class="suggestion-list">
+        {% for warning in suggestions.risk_warnings %}
+          <li><i class="fas fa-shield-alt"></i> {{ warning }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Market Insights -->
+<div class="advisor-panel full-width">
+  <h3>
+    <i class="fas fa-chart-bar"></i> Market Insights
+  </h3>
+  
+  <div class="insights-summary">
+    <p>{{ insights.summary }}</p>
+  </div>
+  
+  <div class="insights-grid">
+    <div class="insight-section">
+      <h4><i class="fas fa-lightbulb"></i> Key Insights</h4>
+      <ul class="insight-list">
+        {% for insight in insights.insights %}
+          <li><i class="fas fa-arrow-right"></i> {{ insight }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    <div class="insight-section">
+      <h4><i class="fas fa-trending-up"></i> Market Trends</h4>
+      <ul class="insight-list">
+        {% for trend in insights.trends %}
+          <li><i class="fas fa-chart-line"></i> {{ trend }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  
+  <div class="insights-stats">
+    <div class="stat-item">
+      <div class="stat-number">{{ insights.recent_news_count }}</div>
+      <div class="stat-label">Recent News Analyzed</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">{{ "%.1f"|format(insights.positive_ratio * 100) }}%</div>
+      <div class="stat-label">Positive Sentiment</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+  <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+  <div class="actions-grid">
+    <a href="{{ url_for('dashboard') }}" class="action-card">
+      <i class="fas fa-newspaper"></i>
+      <h4>View News</h4>
+      <p>Browse latest financial news</p>
+    </a>
+    
+    <a href="{{ url_for('financial_guidance') }}" class="action-card">
+      <i class="fas fa-question-circle"></i>
+      <h4>Get Guidance</h4>
+      <p>Ask financial questions</p>
+    </a>
+    
+    <a href="{{ url_for('fetch_international_news') }}" class="action-card">
+      <i class="fas fa-globe"></i>
+      <h4>Fetch International</h4>
+      <p>Get global market news</p>
+    </a>
+  </div>
+</div>
+{% endblock %}

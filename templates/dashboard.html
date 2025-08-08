@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+  <h1>
+    <i class="fas fa-tachometer-alt"></i> Market Dashboard
+  </h1>
+  <p class="dashboard-subtitle">Real-time financial market analysis and insights</p>
+</div>
+
+<div class="dashboard-grid">
+  <section class="left">
+    <div class="panel">
+      <h3>
+        <i class="fas fa-chart-pie"></i> Market Snapshot
+      </h3>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-icon">
+            <i class="fas fa-newspaper"></i>
+          </div>
+          <div class="metric-content">
+            <span class="number">{{ total }}</span>
+            <span class="label">Total Articles</span>
+          </div>
+        </div>
+        <div class="metric positive">
+          <div class="metric-icon">
+            <i class="fas fa-arrow-up"></i>
+          </div>
+          <div class="metric-content">
+            <span class="number">{{ pos }}</span>
+            <span class="label">Positive</span>
+          </div>
+        </div>
+        <div class="metric negative">
+          <div class="metric-icon">
+            <i class="fas fa-arrow-down"></i>
+          </div>
+          <div class="metric-content">
+            <span class="number">{{ neg }}</span>
+            <span class="label">Negative</span>
+          </div>
+        </div>
+        <div class="metric neutral">
+          <div class="metric-icon">
+            <i class="fas fa-minus"></i>
+          </div>
+          <div class="metric-content">
+            <span class="number">{{ neu }}</span>
+            <span class="label">Neutral</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>
+        <i class="fas fa-download"></i> Fetch News
+      </h3>
+      
+      <!-- Single Country News -->
+      <div class="fetch-section">
+        <h4><i class="fas fa-flag"></i> Single Country</h4>
+        <div class="api-info">
+          <small><i class="fas fa-info-circle"></i> Choose between NewsAPI (requires API key) or RSS feeds (no API key needed)</small>
+        </div>
+        <form method="post" action="{{ url_for('fetch_news') }}" class="fetch-form">
+          <div class="form-group">
+            <label>
+              <i class="fas fa-globe"></i> Country Code
+            </label>
+            <input name="country" placeholder="us, gb, in, ca, au..." value="us"/>
+            <small>Enter country code (e.g., us, in, gb)</small>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <i class="fas fa-list-ol"></i> Max Articles
+            </label>
+            <input name="page_size" type="number" min="10" max="100" value="50"/>
+            <small>Number of articles to fetch (10-100)</small>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <i class="fas fa-rss"></i> News Source
+            </label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="false" checked/>
+                <span>NewsAPI only</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="true"/>
+                <span>RSS Feeds only</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="both"/>
+                <span>Both NewsAPI + RSS (recommended)</span>
+              </label>
+            </div>
+            <small>Using both sources gives you more comprehensive news coverage</small>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn">
+              <i class="fas fa-sync-alt"></i> Fetch Country News
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- International News -->
+      <div class="fetch-section">
+        <h4><i class="fas fa-globe-americas"></i> International Markets</h4>
+        <form method="post" action="{{ url_for('fetch_international_news') }}" class="fetch-form">
+          <div class="form-group">
+            <label>
+              <i class="fas fa-list-ol"></i> Max Articles
+            </label>
+            <input name="page_size" type="number" min="20" max="200" value="100"/>
+            <small>Fetches from 15+ major markets (20-200)</small>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <i class="fas fa-rss"></i> News Source
+            </label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="false" checked/>
+                <span>NewsAPI only</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="true"/>
+                <span>RSS Feeds only</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="both"/>
+                <span>Both NewsAPI + RSS (recommended)</span>
+              </label>
+            </div>
+            <small>Using both sources gives you more comprehensive international coverage</small>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn btn-international">
+              <i class="fas fa-globe"></i> Fetch International News
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Global Search -->
+      <div class="fetch-section">
+        <h4><i class="fas fa-search"></i> Global Search</h4>
+        <div class="api-info warning">
+          <small><i class="fas fa-exclamation-triangle"></i> If you get rate limit errors, try using RSS feeds instead of NewsAPI</small>
+        </div>
+        <form method="post" action="{{ url_for('fetch_global_news') }}" class="fetch-form">
+          <div class="form-group">
+            <label>
+              <i class="fas fa-search"></i> Search Query
+            </label>
+            <input name="query" placeholder="financial markets, stocks, crypto..." value="financial markets"/>
+            <small>Search global financial news</small>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <i class="fas fa-list-ol"></i> Max Articles
+            </label>
+            <input name="page_size" type="number" min="10" max="100" value="50"/>
+            <small>Number of articles to fetch (10-100)</small>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <i class="fas fa-rss"></i> News Source
+            </label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="false" checked/>
+                <span>NewsAPI only</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="true"/>
+                <span>RSS Feeds only</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="use_rss" value="both"/>
+                <span>Both NewsAPI + RSS (recommended)</span>
+              </label>
+            </div>
+            <small>Using both sources gives you more comprehensive search results</small>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn btn-global">
+              <i class="fas fa-search"></i> Search Global News
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="right">
+    <div class="panel">
+      <div class="panel-header">
+        <h3>
+          <i class="fas fa-newspaper"></i> Latest News
+        </h3>
+        <div class="news-count">
+          <span class="count-badge">{{ news|length }}</span> articles
+        </div>
+      </div>
+      
+      <div class="news-list">
+        {% for n in news %}
+          <div class="news-row {{ n.sentiment }}">
+            <div class="news-content">
+              <a href="{{ url_for('news_item', news_id=n.id) }}" class="title">
+                {{ n.title }}
+              </a>
+              <div class="meta">
+                <span class="source">
+                  <i class="fas fa-building"></i> {{ n.source }}
+                </span>
+                <span class="date">
+                  <i class="fas fa-calendar"></i> {{ n.published_at.strftime('%Y-%m-%d %H:%M') if n.published_at else '—' }}
+                </span>
+                <span class="region">
+                  <i class="fas fa-map-marker-alt"></i> {{ n.region }}
+                </span>
+              </div>
+              <div class="sent">
+                <i class="fas fa-brain"></i> Sentiment: 
+                <strong class="sentiment-{{ n.sentiment }}">
+                  {{ n.sentiment.title() }} ({{ '%.2f'|format(n.score) }})
+                </strong>
+              </div>
+            </div>
+            <div class="news-actions">
+              <a href="{{ url_for('news_item', news_id=n.id) }}" class="btn-small">
+                <i class="fas fa-eye"></i> View
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <h4>No News Yet</h4>
+            <p>Click "Fetch & Analyze" to collect articles from global markets.</p>
+            <button class="btn-outline" onclick="document.querySelector('.fetch-form .btn').click()">
+              <i class="fas fa-download"></i> Get Started
+            </button>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

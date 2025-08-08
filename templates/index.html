@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero">
+  <div class="hero-content">
+    <h1>
+      <i class="fas fa-chart-line"></i> FinSurvive
+    </h1>
+    <p class="lead">
+      AI-powered global market news analyzer & survival advisor — 
+      <span class="highlight">simple, real-time guidance</span> for smart financial decisions.
+    </p>
+    <div class="cta">
+      <a class="btn" href="{{ url_for('register') }}">
+        <i class="fas fa-rocket"></i> Get Started Free
+      </a>
+    </div>
+    <div class="login-center">
+      <a class="btn-login-center" href="{{ url_for('login') }}">
+        <i class="fas fa-sign-in-alt"></i> Login to Your Account
+      </a>
+    </div>
+  </div>
+  
+  <div class="feature-cards">
+    <div class="card">
+      <h3>
+        <i class="fas fa-newspaper"></i> Real-time News
+      </h3>
+      <p>Collects global market headlines from multiple sources and analyzes sentiment using advanced AI algorithms.</p>
+      <div class="card-features">
+        <span class="feature-tag">Global Coverage</span>
+        <span class="feature-tag">Live Updates</span>
+        <span class="feature-tag">Multi-Source</span>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>
+        <i class="fas fa-lightbulb"></i> Actionable Advice
+      </h3>
+      <p>Tailored survival strategies for investors, businesses, and students with clear, actionable recommendations.</p>
+      <div class="card-features">
+        <span class="feature-tag">Personalized</span>
+        <span class="feature-tag">Risk Assessment</span>
+        <span class="feature-tag">Quick Actions</span>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>
+        <i class="fas fa-brain"></i> Explainable AI
+      </h3>
+      <p>Sentiment scores and simple rules make results understandable and transparent for all users.</p>
+      <div class="card-features">
+        <span class="feature-tag">Transparent</span>
+        <span class="feature-tag">Easy to Understand</span>
+        <span class="feature-tag">Trustworthy</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-icon">
+        <i class="fas fa-globe"></i>
+      </div>
+      <div class="stat-content">
+        <h4>Global Coverage</h4>
+        <p>Real-time news from 50+ countries</p>
+      </div>
+    </div>
+    
+    <div class="stat-item">
+      <div class="stat-icon">
+        <i class="fas fa-chart-bar"></i>
+      </div>
+      <div class="stat-content">
+        <h4>AI Analysis</h4>
+        <p>Advanced sentiment analysis</p>
+      </div>
+    </div>
+    
+    <div class="stat-item">
+      <div class="stat-icon">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <div class="stat-content">
+        <h4>Secure & Private</h4>
+        <p>Your data is protected</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

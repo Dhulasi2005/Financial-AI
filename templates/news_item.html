@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h2>{{ n.title }}</h2>
+  <p class="muted">{{ n.source }} • {{ n.published_at.strftime('%Y-%m-%d %H:%M') if n.published_at else '—' }} • {{ n.region }}</p>
+  <p>{{ n.description }}</p>
+  <p><a href="{{ n.url }}" target="_blank">Read full article</a></p>
+  <div class="advice">
+    <h3>AI Advice</h3>
+    <p>{{ advice }}</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="guidance-header">
+  <h1>
+    <i class="fas fa-lightbulb"></i> Financial Guidance
+  </h1>
+  <p class="guidance-subtitle">Ask questions and get AI-powered financial advice</p>
+</div>
+
+<div class="guidance-container">
+  <!-- Question Form -->
+  <div class="guidance-panel">
+    <h3>
+      <i class="fas fa-question-circle"></i> Ask Your Question
+    </h3>
+    
+    <form method="post" class="guidance-form">
+      <div class="form-group">
+        <label>
+          <i class="fas fa-comment"></i> Your Financial Question
+        </label>
+        <textarea name="question" placeholder="Ask about investing, retirement, risk management, market timing, stocks vs ETFs, or any financial topic..." rows="4" required>{{ question or "" }}</textarea>
+        <small>Be specific to get better advice</small>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn">
+          <i class="fas fa-robot"></i> Get AI Advice
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sample Questions -->
+  <div class="guidance-panel">
+    <h3>
+      <i class="fas fa-lightbulb"></i> Sample Questions
+    </h3>
+    <div class="sample-questions">
+      <div class="question-category">
+        <h4><i class="fas fa-rocket"></i> Getting Started</h4>
+        <ul class="question-list">
+          <li>How do I start investing for the first time?</li>
+          <li>What should I invest in as a beginner?</li>
+          <li>How much should I save for retirement?</li>
+        </ul>
+      </div>
+      
+      <div class="question-category">
+        <h4><i class="fas fa-shield-alt"></i> Risk Management</h4>
+        <ul class="question-list">
+          <li>How can I protect my investments?</li>
+          <li>What's the safest way to invest?</li>
+          <li>How do I diversify my portfolio?</li>
+        </ul>
+      </div>
+      
+      <div class="question-category">
+        <h4><i class="fas fa-chart-line"></i> Market Timing</h4>
+        <ul class="question-list">
+          <li>When is the best time to invest?</li>
+          <li>Should I wait for market dips?</li>
+          <li>How do I time the market?</li>
+        </ul>
+      </div>
+      
+      <div class="question-category">
+        <h4><i class="fas fa-piggy-bank"></i> Retirement</h4>
+        <ul class="question-list">
+          <li>How much should I save for retirement?</li>
+          <li>Should I use a 401k or IRA?</li>
+          <li>When should I start retirement planning?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if guidance %}
+<!-- AI Response -->
+<div class="guidance-response">
+  <div class="response-header">
+    <h3>
+      <i class="fas fa-robot"></i> AI Financial Advisor Response
+    </h3>
+    <div class="question-display">
+      <strong>Your Question:</strong> {{ question }}
+    </div>
+  </div>
+  
+  <div class="response-content">
+    <!-- Main Answer -->
+    <div class="response-section">
+      <h4><i class="fas fa-comment"></i> Answer</h4>
+      <div class="answer-text">
+        {{ guidance.answer }}
+      </div>
+    </div>
+    
+    <!-- Key Points -->
+    <div class="response-section">
+      <h4><i class="fas fa-key"></i> Key Points</h4>
+      <ul class="key-points-list">
+        {% for point in guidance.key_points %}
+          <li><i class="fas fa-check"></i> {{ point }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    <!-- Recommendations -->
+    <div class="response-section">
+      <h4><i class="fas fa-star"></i> Recommendations</h4>
+      <ul class="recommendations-list">
+        {% for recommendation in guidance.recommendations %}
+          <li><i class="fas fa-arrow-right"></i> {{ recommendation }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    <!-- Resources -->
+    <div class="response-section">
+      <h4><i class="fas fa-book"></i> Additional Resources</h4>
+      <ul class="resources-list">
+        {% for resource in guidance.resources %}
+          <li><i class="fas fa-external-link-alt"></i> {{ resource }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Financial Tips -->
+<div class="tips-section">
+  <h3><i class="fas fa-tips"></i> Financial Tips</h3>
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tip-icon">
+        <i class="fas fa-piggy-bank"></i>
+      </div>
+      <h4>Start Early</h4>
+      <p>Compound interest is your friend. The earlier you start investing, the more time your money has to grow.</p>
+    </div>
+    
+    <div class="tip-card">
+      <div class="tip-icon">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h4>Diversify</h4>
+      <p>Don't put all your eggs in one basket. Spread your investments across different asset classes and sectors.</p>
+    </div>
+    
+    <div class="tip-card">
+      <div class="tip-icon">
+        <i class="fas fa-clock"></i>
+      </div>
+      <h4>Think Long-term</h4>
+      <p>Focus on long-term goals rather than short-term market movements. Time in the market beats timing the market.</p>
+    </div>
+    
+    <div class="tip-card">
+      <div class="tip-icon">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <h4>Dollar-Cost Average</h4>
+      <p>Invest regularly regardless of market conditions. This strategy reduces the impact of market volatility.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="disclaimer">
+  <div class="disclaimer-content">
+    <h4><i class="fas fa-exclamation-triangle"></i> Important Disclaimer</h4>
+    <p>
+      This AI financial advisor provides general educational information and should not be considered as personalized investment advice. 
+      Always consult with a qualified financial advisor before making investment decisions. Past performance does not guarantee future results.
+    </p>
+  </div>
+</div>
+{% endblock %}
