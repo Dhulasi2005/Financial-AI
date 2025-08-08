@@ -2,10 +2,8 @@ services:
   - type: web
     name: financial-ai
     env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python deploy_check.py
-    startCommand: gunicorn wsgi:app
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./start.sh
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.12

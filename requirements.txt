@@ -5,8 +5,6 @@ WTForms==3.0.1
 Flask-SQLAlchemy==3.0.3
 python-dotenv==1.0.0
 requests==2.31.0
-transformers==4.38.0
-torch==2.0.1
 flask-mail==0.9.1
 gunicorn==21.2.0
 Werkzeug==2.3.7
