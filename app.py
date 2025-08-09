@@ -41,27 +41,28 @@ from strategy import generate_strategy
 from ai_advisor import FinancialAIAdvisor
 from flask_mail import Mail, Message
 from authlib.integrations.flask_client import OAuth
+from werkzeug.middleware.proxy_fix import ProxyFix
 import secrets
 
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config.from_object(Config())
+    # Ensure correct URL generation and scheme when behind a proxy (e.g., Render)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
     db.init_app(app)
     mail = Mail(app)
     
     # Initialize OAuth
     oauth = OAuth(app)
     
-    # Google OAuth configuration
+    # Google OAuth configuration (OpenID Connect)
     oauth.register(
         name='google',
         client_id=os.getenv('GOOGLE_CLIENT_ID', ''),
         client_secret=os.getenv('GOOGLE_CLIENT_SECRET', ''),
-        access_token_url='https://accounts.google.com/o/oauth2/token',
-        access_token_params=None,
-        authorize_url='https://accounts.google.com/o/oauth2/auth',
-        authorize_params=None,
-        api_base_url='https://www.googleapis.com/oauth2/v1/',
+        # Use OIDC discovery to keep endpoints up to date
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        # Set scope to request id_token and profile details
         client_kwargs={'scope': 'openid email profile'},
     )
     
@@ -80,6 +81,28 @@ def create_app():
     
     # Initialize AI Advisor
     financial_advisor = FinancialAIAdvisor()
+
+    # Security headers to reduce phishing/abuse false-positives and improve browser security
+    @app.after_request
+    def set_security_headers(response):
+        csp = (
+            "default-src 'self'; "
+            "img-src 'self' data: https:; "
+            "style-src 'self' 'unsafe-inline' https:; "
+            "script-src 'self' https://accounts.google.com https://apis.google.com; "
+            "connect-src 'self'; "
+            "frame-ancestors 'self'; "
+            "frame-src https://accounts.google.com https://appleid.apple.com; "
+            "base-uri 'self'; "
+            "form-action 'self' https://accounts.google.com https://appleid.apple.com"
+        )
+        response.headers.setdefault('Content-Security-Policy', csp)
+        response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+        response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+        response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+        return response
     
     def _merge_and_deduplicate_articles(newsapi_articles, rss_articles):
         """
@@ -113,6 +136,13 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    # Make selected config available in templates (e.g., search console verification)
+    @app.context_processor
+    def inject_config():
+        return {
+            'GOOGLE_SITE_VERIFICATION': app.config.get('GOOGLE_SITE_VERIFICATION', '')
+        }
 
     # Initialize database with error handling
     with app.app_context():
@@ -165,6 +195,7 @@ def create_app():
             flash("Google OAuth is not configured. Please set up GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your environment variables. See OAUTH_SETUP.md for instructions.", "warning")
             return redirect(url_for("login"))
         redirect_uri = url_for('google_authorize', _external=True)
+        print(f"Google OAuth redirect URI: {redirect_uri}")
         return oauth.google.authorize_redirect(redirect_uri)
 
     @app.route("/login/google/authorize")
@@ -172,30 +203,41 @@ def create_app():
         """Handle Google OAuth callback"""
         try:
             token = oauth.google.authorize_access_token()
-            resp = oauth.google.get('userinfo')
-            user_info = resp.json()
-            
+            # Prefer parsing the ID Token via OIDC; fallback to userinfo endpoint
+            user_info = oauth.google.parse_id_token(token)
+            if not user_info:
+                resp = oauth.google.get('https://openidconnect.googleapis.com/v1/userinfo')
+                user_info = resp.json()
+
+            email = (user_info.get('email') or '').lower()
+            if not email:
+                raise ValueError('No email returned from Google user info')
+
+            # Some payloads use 'sub' as subject identifier
+            oauth_id = user_info.get('sub') or user_info.get('id') or ''
+            display_name = user_info.get('name') or user_info.get('given_name') or email
+
             # Check if user exists
-            user = User.query.filter_by(email=user_info['email'].lower()).first()
-            
+            user = User.query.filter_by(email=email).first()
+
             if not user:
                 # Create new user
                 user = User(
-                    email=user_info['email'].lower(),
-                    name=user_info.get('name', user_info['email']),
+                    email=email,
+                    name=display_name,
                     password=generate_password_hash(secrets.token_urlsafe(32)),  # Random password for OAuth users
                     oauth_provider='google',
-                    oauth_id=user_info['id']
+                    oauth_id=oauth_id
                 )
                 db.session.add(user)
                 db.session.commit()
                 flash("Account created successfully with Google.", "success")
             else:
                 flash("Logged in successfully with Google.", "success")
-            
+
             login_user(user)
             return redirect(url_for("dashboard"))
-            
+
         except Exception as e:
             flash(f"Google login failed: {str(e)}", "danger")
             return redirect(url_for("login"))

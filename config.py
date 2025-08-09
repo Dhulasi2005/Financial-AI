@@ -4,6 +4,10 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
+    # URL scheme and cookie settings (important for OAuth callbacks)
+    PREFERRED_URL_SCHEME = os.getenv("PREFERRED_URL_SCHEME", "http")
+    SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False") == "True"
     
     # Use a more deployment-friendly database path
     if os.getenv("DATABASE_URL"):
@@ -28,3 +32,6 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
     APPLE_CLIENT_ID = os.getenv("APPLE_CLIENT_ID", "")
     APPLE_CLIENT_SECRET = os.getenv("APPLE_CLIENT_SECRET", "")
+
+    # Optional: Site verification tokens (for Search Console)
+    GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "")

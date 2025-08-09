@@ -15,7 +15,8 @@ pip install -r requirements.txt
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
-3. Enable the Google+ API
+3. Enable required APIs:
+   - "Google Identity Services" (OAuth 2.0)
 
 ### 2. Configure OAuth Consent Screen
 
@@ -34,17 +35,20 @@ pip install -r requirements.txt
 2. Click "Create Credentials" > "OAuth 2.0 Client IDs"
 3. Choose "Web application"
 4. Add authorized redirect URIs:
-   - `http://localhost:5001/login/google/authorize` (for development)
-   - `https://yourdomain.com/login/google/authorize` (for production)
+   - `http://localhost:5001/login/google/authorize` (development)
+   - `https://yourdomain.com/login/google/authorize` (production)
+   Also add the authorized JavaScript origins if prompted (your site origins).
 5. Copy the Client ID and Client Secret
 
 ### 4. Configure Environment Variables
 
-Add these to your `.env` file:
+Add these to your `.env` file (or deployment environment):
 ```
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
+
+If you deploy behind a proxy (Render, Heroku), set `OAUTHLIB_INSECURE_TRANSPORT=0` in production and ensure your app knows it's behind HTTPS (use `X-Forwarded-Proto` handling or platform settings).
 
 ## Apple OAuth Setup
 
