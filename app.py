@@ -191,11 +191,14 @@ def create_app():
     @app.route("/login/google")
     def google_login():
         """Initiate Google OAuth login"""
-        if not os.getenv('GOOGLE_CLIENT_ID') or not os.getenv('GOOGLE_CLIENT_SECRET'):
+        client_id = os.getenv('GOOGLE_CLIENT_ID', '').strip()
+        client_secret = os.getenv('GOOGLE_CLIENT_SECRET', '').strip()
+        if not client_id or not client_secret:
             flash("Google OAuth is not configured. Please set up GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your environment variables. See OAUTH_SETUP.md for instructions.", "warning")
             return redirect(url_for("login"))
         redirect_uri = url_for('google_authorize', _external=True)
         print(f"Google OAuth redirect URI: {redirect_uri}")
+        print(f"Google Client ID suffix (debug): ...{client_id[-12:]} ")
         return oauth.google.authorize_redirect(redirect_uri)
 
     @app.route("/login/google/authorize")
