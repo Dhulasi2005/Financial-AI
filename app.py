@@ -88,8 +88,9 @@ def create_app():
         csp = (
             "default-src 'self'; "
             "img-src 'self' data: https:; "
-            "style-src 'self' 'unsafe-inline' https:; "
-            "script-src 'self' https://accounts.google.com https://apis.google.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://use.fontawesome.com; "
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://use.fontawesome.com; "
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; "
             "connect-src 'self'; "
             "frame-ancestors 'self'; "
             "frame-src https://accounts.google.com https://appleid.apple.com; "

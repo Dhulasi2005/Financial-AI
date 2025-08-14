@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Test</title>
+    
+    <!-- Font Awesome CDN with integrity and fallback -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" 
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+    
+    <!-- Fallback for Font Awesome -->
+    <script>
+      // Check if Font Awesome loaded properly
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          var testIcon = document.createElement('i');
+          testIcon.className = 'fas fa-home';
+          document.body.appendChild(testIcon);
+          var computedStyles = window.getComputedStyle(testIcon, ':before');
+          if (computedStyles.getPropertyValue('font-family').indexOf('Font Awesome') === -1) {
+            console.warn('Font Awesome CDN failed, loading fallback');
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://use.fontawesome.com/releases/v6.5.2/css/all.css';
+            document.head.appendChild(link);
+          } else {
+            console.log('Font Awesome loaded successfully!');
+          }
+          document.body.removeChild(testIcon);
+        }, 100);
+      });
+    </script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1f2e;
+            color: #f1f5f9;
+        }
+        .icon-test {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+        }
+        .icon-test i {
+            font-size: 20px;
+            width: 30px;
+            color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Icon Test - Font Awesome 6.5.2</h1>
+    <p>This page tests if Font Awesome icons are loading correctly:</p>
+    
+    <div class="icon-test">
+        <i class="fas fa-chart-line"></i>
+        <span>Chart Line Icon (fas fa-chart-line)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-lightbulb"></i>
+        <span>Lightbulb Icon (fas fa-lightbulb)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-robot"></i>
+        <span>Robot Icon (fas fa-robot)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-user"></i>
+        <span>User Icon (fas fa-user)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-shield-alt"></i>
+        <span>Shield Alt Icon (fas fa-shield-alt)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-piggy-bank"></i>
+        <span>Piggy Bank Icon (fas fa-piggy-bank)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Exclamation Triangle Icon (fas fa-exclamation-triangle)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-check"></i>
+        <span>Check Icon (fas fa-check)</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-times"></i>
+        <span>Times Icon (fas fa-times) - This should show an X</span>
+    </div>
+    
+    <div class="icon-test">
+        <i class="fas fa-question-circle"></i>
+        <span>Question Circle Icon (fas fa-question-circle)</span>
+    </div>
+    
+    <p style="margin-top: 30px;">
+        <strong>If you can see icons next to each text label, Font Awesome is working correctly!</strong>
+        <br><small>Check the browser console for any loading messages.</small>
+    </p>
+</body>
+</html>
