@@ -674,4 +674,8 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.getenv("PORT", 5001)))
+    # For local development, use localhost to avoid Google OAuth private IP issues
+    # For production (Render), use 0.0.0.0 to accept external connections
+    is_production = os.getenv('FLASK_ENV') == 'production'
+    host = "0.0.0.0" if is_production else "127.0.0.1"
+    app.run(debug=not is_production, host=host, port=int(os.getenv("PORT", 5001)))

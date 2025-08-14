@@ -57,3 +57,28 @@ Your screenshot shows empty "Authorized JavaScript origins" section.
 **JavaScript origins are required for OAuth to work from web browsers.**
 
 Add the 3 origins above and your OAuth will work! 🎉
+
+---
+
+## 🚨 **Additional Fix for Private IP Error (Error 400)**
+
+If you see "device_id and device_name are required for private IP" error:
+
+### **Quick Fix:**
+1. **Use localhost instead**: Access `http://localhost:5001/login` instead of `http://192.168.x.x:5001/login`
+
+### **Or add your IP to Google Console:**
+If you need to use IP address (like `192.168.137.6`), add these to Google Console:
+
+**JavaScript Origins:**
+```
+http://192.168.137.6:5001
+```
+
+**Redirect URIs:**
+```
+http://192.168.137.6:5001/login/google/authorize
+```
+
+### **Why This Happens:**
+Google OAuth restricts private IP addresses for security. Using `localhost` bypasses this restriction.
