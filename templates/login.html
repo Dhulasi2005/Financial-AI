@@ -111,10 +111,6 @@ window.addEventListener('DOMContentLoaded', function() {
             <i class="fab fa-google"></i>
             <span>Continue with Google</span>
           </a>
-          <a href="{{ url_for('apple_login') }}" class="btn-social btn-apple" onclick="handleOAuthClick(event, 'Apple')">
-            <i class="fab fa-apple"></i>
-            <span>Continue with Apple</span>
-          </a>
         </div>
         
         <!-- OAuth Debug Information (only shown in development) -->
@@ -127,12 +123,6 @@ window.addEventListener('DOMContentLoaded', function() {
           </small>
         </div>
         {% endif %}
-        <div class="oauth-note">
-          <small class="muted">
-            <i class="fas fa-info-circle"></i>
-            OAuth requires configuration. See OAUTH_SETUP.md for setup instructions.
-          </small>
-        </div>
       </div>
       <div class="auth-actions">
         <a href="{{ url_for('register') }}" class="btn-get-started">

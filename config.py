@@ -5,9 +5,13 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
     # URL scheme and cookie settings (important for OAuth callbacks)
-    PREFERRED_URL_SCHEME = os.getenv("PREFERRED_URL_SCHEME", "http")
+    PREFERRED_URL_SCHEME = os.getenv("PREFERRED_URL_SCHEME", "https" if os.getenv('FLASK_ENV') == 'production' else "http")
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
-    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False") == "True"
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "True" if os.getenv('FLASK_ENV') == 'production' else "False") == "True"
+    # Session cookie settings for OAuth state preservation
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_MAX_AGE = 3600  # 1 hour
+    PERMANENT_SESSION_LIFETIME = 3600
     
     # Use a more deployment-friendly database path
     if os.getenv("DATABASE_URL"):

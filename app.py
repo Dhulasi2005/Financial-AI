@@ -66,18 +66,6 @@ def create_app():
         client_kwargs={'scope': 'openid email profile'},
     )
     
-    # Apple OAuth configuration (Note: Apple Sign-In requires special setup)
-    oauth.register(
-        name='apple',
-        client_id=os.getenv('APPLE_CLIENT_ID', ''),
-        client_secret=os.getenv('APPLE_CLIENT_SECRET', ''),
-        access_token_url='https://appleid.apple.com/auth/token',
-        access_token_params=None,
-        authorize_url='https://appleid.apple.com/auth/authorize',
-        authorize_params=None,
-        api_base_url='https://appleid.apple.com/',
-        client_kwargs={'scope': 'name email'},
-    )
     
     # Initialize AI Advisor
     financial_advisor = FinancialAIAdvisor()
@@ -93,9 +81,9 @@ def create_app():
             "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; "
             "connect-src 'self'; "
             "frame-ancestors 'self'; "
-            "frame-src https://accounts.google.com https://appleid.apple.com; "
+            "frame-src https://accounts.google.com; "
             "base-uri 'self'; "
-            "form-action 'self' https://accounts.google.com https://appleid.apple.com"
+            "form-action 'self' https://accounts.google.com"
         )
         response.headers.setdefault('Content-Security-Policy', csp)
         response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
@@ -200,18 +188,56 @@ def create_app():
         redirect_uri = url_for('google_authorize', _external=True)
         print(f"Google OAuth redirect URI: {redirect_uri}")
         print(f"Google Client ID suffix (debug): ...{client_id[-12:]} ")
-        return oauth.google.authorize_redirect(redirect_uri)
+        
+        # Generate and store a custom state parameter to help with debugging
+        state = secrets.token_urlsafe(32)
+        session['oauth_state'] = state
+        print(f"Generated OAuth state: {state[:8]}...{state[-8:]}")
+        
+        return oauth.google.authorize_redirect(redirect_uri, state=state)
 
     @app.route("/login/google/authorize")
     def google_authorize():
         """Handle Google OAuth callback"""
         try:
+            # Debug: Print request parameters
+            print(f"OAuth callback received with args: {request.args}")
+            
+            # Check state parameter manually for debugging
+            request_state = request.args.get('state')
+            session_state = session.get('oauth_state')
+            print(f"Request state: {request_state[:8] if request_state else 'None'}...{request_state[-8:] if request_state and len(request_state) > 8 else ''}")
+            print(f"Session state: {session_state[:8] if session_state else 'None'}...{session_state[-8:] if session_state and len(session_state) > 8 else ''}")
+            
+            # Manual state validation to bypass Authlib's validation temporarily
+            if request_state and session_state:
+                if request_state != session_state:
+                    print("❌ State mismatch detected - clearing session and retrying")
+                    # Clear the problematic state and redirect back to login
+                    session.pop('oauth_state', None)
+                    flash("OAuth state validation failed. Please try logging in again.", "warning")
+                    return redirect(url_for("login"))
+                else:
+                    print("✅ State validation passed")
+                    # Remove the state from session after successful validation
+                    session.pop('oauth_state', None)
+            elif not request_state:
+                print("⚠️ No state parameter in request")
+            elif not session_state:
+                print("⚠️ No state in session - session may have expired")
+                flash("Session expired. Please try logging in again.", "warning")
+                return redirect(url_for("login"))
+            
+            # Now proceed with token exchange
             token = oauth.google.authorize_access_token()
-            # Prefer parsing the ID Token via OIDC; fallback to userinfo endpoint
-            user_info = oauth.google.parse_id_token(token)
-            if not user_info:
-                resp = oauth.google.get('https://openidconnect.googleapis.com/v1/userinfo')
-                user_info = resp.json()
+            
+            # For OpenID Connect, we need to get user info from the userinfo endpoint
+            # instead of parsing the ID token (which requires nonce handling)
+            resp = oauth.google.get('https://openidconnect.googleapis.com/v1/userinfo', token=token)
+            user_info = resp.json()
+            
+            # Alternative: Parse ID token with proper nonce handling if needed
+            # user_info = oauth.google.parse_id_token(token, nonce=session.get('oauth_nonce'))
 
             email = (user_info.get('email') or '').lower()
             if not email:
@@ -220,6 +246,8 @@ def create_app():
             # Some payloads use 'sub' as subject identifier
             oauth_id = user_info.get('sub') or user_info.get('id') or ''
             display_name = user_info.get('name') or user_info.get('given_name') or email
+
+            print(f"✅ Successfully got user info for: {email}")
 
             # Check if user exists
             user = User.query.filter_by(email=email).first()
@@ -236,63 +264,33 @@ def create_app():
                 db.session.add(user)
                 db.session.commit()
                 flash("Account created successfully with Google.", "success")
+                print(f"✅ Created new user: {email}")
             else:
                 flash("Logged in successfully with Google.", "success")
+                print(f"✅ Existing user logged in: {email}")
 
             login_user(user)
             return redirect(url_for("dashboard"))
 
         except Exception as e:
-            flash(f"Google login failed: {str(e)}", "danger")
-            return redirect(url_for("login"))
-
-    @app.route("/login/apple")
-    def apple_login():
-        """Initiate Apple OAuth login"""
-        if not os.getenv('APPLE_CLIENT_ID') or not os.getenv('APPLE_CLIENT_SECRET'):
-            flash("Apple OAuth is not configured. Please set up APPLE_CLIENT_ID and APPLE_CLIENT_SECRET in your environment variables. See OAUTH_SETUP.md for instructions.", "warning")
-            return redirect(url_for("login"))
-        redirect_uri = url_for('apple_authorize', _external=True)
-        return oauth.apple.authorize_redirect(redirect_uri)
-
-    @app.route("/login/apple/authorize")
-    def apple_authorize():
-        """Handle Apple OAuth callback"""
-        try:
-            token = oauth.apple.authorize_access_token()
-            # Apple provides user info in the token response
-            user_info = token.get('user', {})
+            error_msg = str(e)
+            print(f"❌ OAuth callback error: {error_msg}")
             
-            # Extract email from Apple's response
-            email = user_info.get('email', '')
-            if not email:
-                flash("Apple login failed: Email not provided", "danger")
-                return redirect(url_for("login"))
+            # Clear any OAuth state on error
+            session.pop('oauth_state', None)
             
-            # Check if user exists
-            user = User.query.filter_by(email=email.lower()).first()
-            
-            if not user:
-                # Create new user
-                user = User(
-                    email=email.lower(),
-                    name=user_info.get('name', {}).get('firstName', email),
-                    password=generate_password_hash(secrets.token_urlsafe(32)),  # Random password for OAuth users
-                    oauth_provider='apple',
-                    oauth_id=user_info.get('sub', '')
-                )
-                db.session.add(user)
-                db.session.commit()
-                flash("Account created successfully with Apple.", "success")
+            # Provide more specific error messages
+            if "mismatching_state" in error_msg or "CSRF" in error_msg:
+                flash("OAuth security validation failed. Please clear your browser cookies and try again.", "warning")
+            elif "access_denied" in error_msg:
+                flash("Access denied. You need to grant permission to continue with Google Sign-In.", "info")
+            elif "invalid_request" in error_msg:
+                flash("Invalid OAuth request. Please try again.", "warning")
             else:
-                flash("Logged in successfully with Apple.", "success")
+                flash(f"Google login failed: {error_msg}", "danger")
             
-            login_user(user)
-            return redirect(url_for("dashboard"))
-            
-        except Exception as e:
-            flash(f"Apple login failed: {str(e)}", "danger")
             return redirect(url_for("login"))
+
 
     @app.route("/logout")
     @login_required
