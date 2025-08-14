@@ -1,5 +1,77 @@
 {% extends "base.html" %}
 {% block content %}
+<script>
+// OAuth debugging and error handling
+function handleOAuthClick(event, provider) {
+    console.log(`Attempting ${provider} OAuth login...`);
+    
+    // Update debug status if present
+    const statusEl = document.getElementById('oauth-status');
+    if (statusEl) {
+        statusEl.textContent = `Redirecting to ${provider}...`;
+        statusEl.style.color = '#06b6d4';
+    }
+    
+    // Log current URL for debugging
+    console.log('Current URL:', window.location.href);
+    
+    // Check if we're in a popup or iframe (which can cause OAuth issues)
+    if (window.parent !== window) {
+        console.warn('OAuth may not work properly in iframe/popup');
+        if (statusEl) {
+            statusEl.textContent = 'Warning: In iframe/popup';
+            statusEl.style.color = '#f59e0b';
+        }
+    }
+    
+    // Don't prevent default - let the link work normally
+    return true;
+}
+
+// Monitor for OAuth errors in URL parameters
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (error) {
+        console.error('OAuth Error:', error, errorDescription);
+        
+        // Show user-friendly error message
+        let errorMsg = 'OAuth authentication failed.';
+        if (error === 'access_denied') {
+            errorMsg = 'Access denied. Please try again.';
+        } else if (error === 'invalid_client') {
+            errorMsg = 'OAuth configuration error. Please contact support.';
+        }
+        
+        // You could show a toast/alert here
+        console.log('User-friendly error:', errorMsg);
+        
+        // Update debug status
+        const statusEl = document.getElementById('oauth-status');
+        if (statusEl) {
+            statusEl.textContent = `Error: ${error}`;
+            statusEl.style.color = '#ef4444';
+        }
+    }
+    
+    // Test Google OAuth URL accessibility
+    if (document.getElementById('oauth-status')) {
+        fetch('https://accounts.google.com/.well-known/openid-configuration')
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Google OAuth endpoints accessible');
+                } else {
+                    console.error('❌ Google OAuth endpoints not accessible');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Network error accessing Google OAuth:', error);
+            });
+    }
+});
+</script>
 <div class="login-container">
   <div class="auth-card">
     <div class="auth-header">
@@ -35,15 +107,26 @@
           <span>or continue with</span>
         </div>
         <div class="social-buttons">
-          <a href="{{ url_for('google_login') }}" class="btn-social btn-google">
+          <a href="{{ url_for('google_login') }}" class="btn-social btn-google" onclick="handleOAuthClick(event, 'Google')">
             <i class="fab fa-google"></i>
             <span>Continue with Google</span>
           </a>
-          <a href="{{ url_for('apple_login') }}" class="btn-social btn-apple">
+          <a href="{{ url_for('apple_login') }}" class="btn-social btn-apple" onclick="handleOAuthClick(event, 'Apple')">
             <i class="fab fa-apple"></i>
             <span>Continue with Apple</span>
           </a>
         </div>
+        
+        <!-- OAuth Debug Information (only shown in development) -->
+        {% if config.get('FLASK_ENV') == 'development' %}
+        <div class="oauth-debug" style="margin-top: 15px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+          <small style="color: #f59e0b; font-size: 11px;">
+            <i class="fas fa-bug"></i> Debug Info:<br>
+            Google OAuth: <span id="oauth-status">Ready</span><br>
+            Current URL: <span id="current-url">{{ request.url }}</span>
+          </small>
+        </div>
+        {% endif %}
         <div class="oauth-note">
           <small class="muted">
             <i class="fas fa-info-circle"></i>
